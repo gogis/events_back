@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { WsClientService } from '../ws/ws-client.service';
 import { RedisService } from 'src/redis/redis.service';
@@ -18,13 +18,14 @@ export class CategoryService {
 
             this.wsClient.sendRequest('get_event_types', {
                 language: 'uk',
-                obtained_version: 0,
+                obtained_version: saved.version,
             }).then((latest) => {
                 if (latest.version !== saved.version) {
-                    this.redisService.setValue('categories', JSON.stringify({
-                        version: latest.version,
-                        event_types: latest.event_types,
-                    }));
+                    console.log("latest categories: ", latest)
+                    // this.redisService.setValue('categories', JSON.stringify({
+                    //     version: latest.version,
+                    //     event_types: latest.event_types,
+                    // }));
                 }
             }).catch((err) => {
                 console.error('[WS] Failed to update categories from socket:', err);
@@ -32,7 +33,7 @@ export class CategoryService {
 
             return {
                 data: {
-                    events: saved.event_types
+                    categories: saved.event_types
                 }
             };
         }
@@ -45,11 +46,11 @@ export class CategoryService {
         this.redisService.setValue('categories', JSON.stringify({
             version: fresh.version,
             event_types: fresh.event_types,
-        }));
+        }), 3600);
 
         return {
             data: {
-                events: fresh.event_types
+                categories: fresh.event_types
             }
         };
     }

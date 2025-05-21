@@ -1,4 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
+import { Request } from 'express';
+
 import { EventService } from './event.service';
 
 
@@ -7,7 +9,7 @@ export class EventController {
     constructor(private readonly servis: EventService) { }
 
     @Get()
-    getCategories() {
-        return this.servis.getEvents();
+    getCategories(@Req() req: Request) {
+        return this.servis.getEvents(req);
     }
 }

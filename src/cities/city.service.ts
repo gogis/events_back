@@ -12,13 +12,19 @@ export class CityService {
         private readonly redisService: RedisService
     ) { }
 
-    async getCitites(req: Request) {
+    async getCitites(req: Request, isFirst = false) {
         try {
             const ip = getIp(req);
             const savedRaw = await this.redisService.getValue(`${ip}`);
 
             if (savedRaw) {
                 const saved = JSON.parse(savedRaw);
+
+                if (isFirst) {
+                    return {
+                        data: saved.cities[0]
+                    };
+                }
 
                 return {
                     data: {
@@ -47,6 +53,12 @@ export class CityService {
                 cities: fresh.cities
             }), 60);
 
+            if (isFirst) {
+                return {
+                    data: fresh.cities[0]
+                };
+            }
+
             return {
                 data: {
                     cities: fresh.cities
@@ -60,6 +72,12 @@ export class CityService {
                 lon: 24.6765683,
                 obtained_version: 0,
             });
+
+            if (isFirst) {
+                return {
+                    data: res.cities[0]
+                };
+            }
 
             return {
                 data: {
