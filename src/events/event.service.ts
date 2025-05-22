@@ -5,6 +5,7 @@ import { Request } from 'express';
 import { WsClientService } from '../ws/ws-client.service';
 import { RedisService } from 'src/redis/redis.service';
 import { CityService } from '../cities/city.service';
+import { filterEvents } from 'src/common/helpers/filter-events';
 
 @Injectable()
 export class EventService {
@@ -14,10 +15,16 @@ export class EventService {
         private readonly cityServis: CityService
     ) { }
 
-    async getEvents(req: Request) {
+    async getEvents(req: Request, {
+        categories,
+        dateFrom,
+        dateTo,
+        limit,
+        page
+    }) {
         try {
             const cities = await this.cityServis.getCitites(req, true);
-            const savedRaw = await this.redisService.getValue(`eve_${cities.data.id}`);
+            const savedRaw = await this.redisService.getValue(`event_${cities.data.id}`);
 
             if (savedRaw) {
                 const saved = JSON.parse(savedRaw);
@@ -26,13 +33,36 @@ export class EventService {
                     city_id: cities.data.id,
                     version: saved.version,
                 }).then((latest) => {
-                    if (latest.version !== saved.version) {
-                        console.log("latest events: ", latest);
+                    if (latest.version !== saved.version && latest?.events?.length) {
+                        const deleted: number[] = latest.events.filter((event: { id: number, is_deleted: boolean }) => event.is_deleted).map((el: { id: number }) => el.id);
+                        const updated: any[] = latest.events.filter((event: { is_deleted: boolean }) => !event.is_deleted);
 
-                        // this.redisService.setValue('categories', JSON.stringify({
-                        //     version: latest.version,
-                        //     event_types: latest.event_types,
-                        // }));
+                        let newListEvent: any[] = [];
+
+                        if (deleted.length) {
+                            newListEvent = saved.filter((event: { id: number }) => !deleted.includes(event.id))
+                        }
+
+                        if (updated) {
+                            const updatesMap = new Map<number, any>();
+
+                            for (const event of updated) {
+                                updatesMap.set(event.id, event);
+                            }
+
+                            newListEvent = (newListEvent.length ? newListEvent : latest.events).map((event: any) => updatesMap.has(event.id) ? { ...event, ...updatesMap.get(event.id)! } : event);
+
+                            for (const [id, newEvent] of updatesMap.entries()) {
+                                if (!latest.events.find((event: { id: number }) => event.id === id)) {
+                                    newListEvent.push(newEvent);
+                                }
+                            }
+                        }
+
+                        this.redisService.setValue('categories', JSON.stringify({
+                            version: latest.version,
+                            event_types: newListEvent,
+                        }));
                     }
                 }).catch((err) => {
                     console.error('[WS] Failed to update categories from socket:', err);
@@ -40,26 +70,36 @@ export class EventService {
 
                 return {
                     data: {
-                        events: saved.events
+                        ...filterEvents(saved.events, {
+                            categories,
+                            dateFrom,
+                            dateTo,
+                            limit,
+                            page
+                        })
                     }
                 }
             }
 
             const fresh = await this.wsClient.sendRequest('get_events', {
                 city_id: cities.data.id,
-                version: 3608,
+                version: 0,
             });
 
-            console.log('fresh: ', fresh);
-
-            this.redisService.setValue(`eve_${cities.data.id}`, JSON.stringify({
+            this.redisService.setValue(`event_${cities.data.id}`, JSON.stringify({
                 version: fresh.version,
                 events: fresh.events
             }), 3600);
 
             return {
                 data: {
-                    events: fresh.events
+                    ...filterEvents(fresh.events, {
+                        categories,
+                        dateFrom,
+                        dateTo,
+                        limit,
+                        page
+                    })
                 }
             }
         } catch (error) {

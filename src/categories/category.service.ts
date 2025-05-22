@@ -20,12 +20,11 @@ export class CategoryService {
                 language: 'uk',
                 obtained_version: saved.version,
             }).then((latest) => {
-                if (latest.version !== saved.version) {
-                    console.log("latest categories: ", latest)
-                    // this.redisService.setValue('categories', JSON.stringify({
-                    //     version: latest.version,
-                    //     event_types: latest.event_types,
-                    // }));
+                if (latest.version !== saved.version && latest?.event_types) {
+                    this.redisService.setValue('categories', JSON.stringify({
+                        version: latest.version,
+                        event_types: latest.event_types,
+                    }));
                 }
             }).catch((err) => {
                 console.error('[WS] Failed to update categories from socket:', err);
