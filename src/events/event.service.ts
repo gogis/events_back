@@ -16,14 +16,24 @@ export class EventService {
     ) { }
 
     async getEvents(req: Request, {
-        categories,
+        categories = [],
         dateFrom,
         dateTo,
-        limit,
-        page
-    }) {
+        cityId,
+        limit = 1000,
+        page = 1
+    }: {
+        categories?: number[];
+        dateFrom?: string;
+        dateTo?: string;
+        cityId?: number;
+        limit?: number;
+        page?: number;
+    },
+        isEventsAll = false
+    ) {
         try {
-            const cities = await this.cityServis.getCitites(req, true);
+            const cities = !!cityId ? { data: { id: cityId } } : await this.cityServis.getCitites(req, true);
             const savedRaw = await this.redisService.getValue(`event_${cities.data.id}`);
 
             if (savedRaw) {
@@ -68,6 +78,12 @@ export class EventService {
                     console.error('[WS] Failed to update categories from socket:', err);
                 });
 
+                if (isEventsAll) {
+                    return {
+                        events: saved.events
+                    }
+                }
+
                 return {
                     data: {
                         ...filterEvents(saved.events, {
@@ -91,6 +107,12 @@ export class EventService {
                 events: fresh.events
             }), 3600);
 
+            if (isEventsAll) {
+                return {
+                    events: fresh.events
+                }
+            }
+
             return {
                 data: {
                     ...filterEvents(fresh.events, {
@@ -104,6 +126,30 @@ export class EventService {
             }
         } catch (error) {
             console.error('Error in getEvents:', error);
+        }
+    }
+
+    async getOneById(req: Request, id: number, cityId: number) {
+        const savedRawEvents = await this.redisService.getValue(`event_${cityId}`);
+
+        if (savedRawEvents) {
+            const savedEvents = JSON.parse(savedRawEvents);
+
+            return {
+                data: {
+                    event: savedEvents.events.find((event: { id: number }) => event.id === id)
+                }
+            }
+        }
+
+        const eventsServer = await this.getEvents(req, { cityId }, true);
+
+        if (eventsServer?.events) {
+            return {
+                data: {
+                    event: eventsServer.events.find((event: { id: number }) => event.id === id)
+                }
+            }
         }
     }
 }

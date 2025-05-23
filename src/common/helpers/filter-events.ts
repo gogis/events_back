@@ -1,13 +1,13 @@
 export const filterEvents = (events: any[], filter: {
     categories: number[],
-    dateFrom: string | undefined,
-    dateTo: string | undefined,
+    dateFrom?: string | undefined,
+    dateTo?: string | undefined,
     limit: number,
     page: number
 }) => {
     let listEvent = events;
 
-    if (filter.categories?.length) {
+    if (filter?.categories?.length) {
         listEvent = events.filter((event: any) => filter.categories.some(value => event?.types?.includes(value)))
     }
 

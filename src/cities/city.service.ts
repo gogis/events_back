@@ -15,7 +15,7 @@ export class CityService {
     async getCitites(req: Request, isFirst = false) {
         try {
             const ip = getIp(req);
-            const savedRaw = await this.redisService.getValue(`${ip}`);
+            const savedRaw = await this.redisService.getValue(`cities_by_${ip}`);
 
             if (savedRaw) {
                 const saved = JSON.parse(savedRaw);
@@ -49,7 +49,7 @@ export class CityService {
                 obtained_version: 0,
             });
 
-            this.redisService.setValue(`${ip}`, JSON.stringify({
+            this.redisService.setValue(`cities_by_${ip}`, JSON.stringify({
                 cities: fresh.cities
             }), 60);
 
