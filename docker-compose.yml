@@ -1,0 +1,25 @@
+services:
+  backend:
+    build: .
+    container_name: backend
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    networks:
+      nginx:
+
+
+  redis:
+    image: redis:latest
+    container_name: redis-local
+    ports:
+      - "6379:6379"
+    networks:
+      nginx:
+
+
+networks:
+  nginx:
+    name: nginx_default
+    external: true
