@@ -1,17 +1,22 @@
 import { Injectable } from '@nestjs/common';
+import { Request } from 'express';
 
 import { WsClientService } from '../ws/ws-client.service';
 import { RedisService } from 'src/redis/redis.service';
+import { EventService } from 'src/events/event.service';
+import { filterCategoriesByEvent } from 'src/common/helpers/filter-categories';
 
 @Injectable()
 export class CategoryService {
     constructor(
         private readonly wsClient: WsClientService,
-        private readonly redisService: RedisService
+        private readonly redisService: RedisService,
+        private readonly eventService: EventService
     ) { }
 
-    async getCategories() {
+    async getCategories(req: Request, cityId: number = 0) {
         const savedRaw = await this.redisService.getValue('categories');
+        const eventsByCity = await this.eventService.getEvents(req, { cityId }, true);
 
         if (savedRaw) {
             const saved = JSON.parse(savedRaw);
@@ -32,7 +37,7 @@ export class CategoryService {
 
             return {
                 data: {
-                    categories: saved.event_types
+                    categories: filterCategoriesByEvent(eventsByCity?.events, saved.event_types)
                 }
             };
         }
@@ -49,7 +54,7 @@ export class CategoryService {
 
         return {
             data: {
-                categories: fresh.event_types
+                categories: filterCategoriesByEvent(eventsByCity?.events, fresh.event_types)
             }
         };
     }

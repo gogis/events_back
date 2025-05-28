@@ -33,7 +33,7 @@ export class EventService {
         isEventsAll = false
     ) {
         try {
-            const cities = !!cityId ? { data: { id: cityId } } : await this.cityServis.getCitites(req, true);
+            const cities = !!cityId ? await this.cityServis.getCitites(req, false, cityId) : await this.cityServis.getCitites(req, true);
             const savedRaw = await this.redisService.getValue(`event_${cities.data.id}`);
 
             if (savedRaw) {
@@ -92,7 +92,8 @@ export class EventService {
                             dateTo,
                             limit,
                             page
-                        })
+                        }),
+                        currentCity: cities.data
                     }
                 }
             }
@@ -121,7 +122,8 @@ export class EventService {
                         dateTo,
                         limit,
                         page
-                    })
+                    }),
+                    currentCity: cities.data
                 }
             }
         } catch (error) {

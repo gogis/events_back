@@ -12,8 +12,8 @@ export class EventController {
 
     @Get()
     @ApiQuery({ name: 'category', required: false, example: 1 })
-    @ApiQuery({ name: 'dateFrom', required: false, example: '20.05.2025' })
-    @ApiQuery({ name: 'dateTo', required: false, example: '20.07.2025' })
+    @ApiQuery({ name: 'dateFrom', required: false, example: '20-05-2025' })
+    @ApiQuery({ name: 'dateTo', required: false, example: '20-07-2025' })
     @ApiQuery({ name: 'limit', required: false, example: 100, default: 1000 })
     @ApiQuery({ name: 'page', required: false, example: 1, default: 1 })
     @ApiHeader({ name: 'city-id', required: false, example: '1', description: 'ID міста користувача' })
@@ -55,6 +55,11 @@ export class EventController {
                             "is_deleted": false
                         },
                     ],
+                    currentCity: {
+                        id: 1,
+                        name: "ІФ",
+                    },
+                    totalPages: 20
                 }
             },
         },
