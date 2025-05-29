@@ -14,9 +14,9 @@ export class CategoryService {
         private readonly eventService: EventService
     ) { }
 
-    async getCategories(req: Request, cityId: number = 0) {
+    async getCategories(req: Request, cityId: number = 0, all: number = 0) {
         const savedRaw = await this.redisService.getValue('categories');
-        const eventsByCity = await this.eventService.getEvents(req, { cityId }, true);
+        const eventsByCity = all === 1 ? null : await this.eventService.getEvents(req, { cityId }, true);
 
         if (savedRaw) {
             const saved = JSON.parse(savedRaw);
@@ -35,6 +35,14 @@ export class CategoryService {
                 console.error('[WS] Failed to update categories from socket:', err);
             });
 
+            if (all === 1) {
+                return {
+                    data: {
+                        categories: saved.event_types
+                    }
+                }
+            }
+
             return {
                 data: {
                     categories: filterCategoriesByEvent(eventsByCity?.events, saved.event_types)
@@ -51,6 +59,14 @@ export class CategoryService {
             version: fresh.version,
             event_types: fresh.event_types,
         }), 3600);
+
+        if (all === 1) {
+            return {
+                data: {
+                    categories: fresh.event_types
+                }
+            }
+        }
 
         return {
             data: {
