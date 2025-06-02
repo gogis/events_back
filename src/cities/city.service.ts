@@ -35,7 +35,7 @@ export class CityService {
                 return {
                     data: {
                         cities: saved.cities,
-                        activeCity: saved.cities.find((el: { id: number }) => el.id === activeCitiId) || null
+                        activeCity: saved.cities.find((el: { id: number }) => el.id === activeCitiId) || saved.cities?.[0] 
                     }
                 };
             }
@@ -75,7 +75,7 @@ export class CityService {
             return {
                 data: {
                     cities: fresh.cities,
-                    activeCity: fresh.cities.find((el: { id: number }) => el.id === activeCitiId) || null
+                    activeCity: fresh.cities.find((el: { id: number }) => el.id === activeCitiId) || fresh.cities[0]
                 }
             };
         } catch (error) {
