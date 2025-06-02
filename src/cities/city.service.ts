@@ -12,7 +12,7 @@ export class CityService {
         private readonly redisService: RedisService
     ) { }
 
-    async getCitites(req: Request, isFirst = false, cityId?: number) {
+    async getCitites(req: Request, isFirst = false, cityId?: number, activeCitiId?: number) {
         try {
             const ip = getIp(req);
             const savedRaw = await this.redisService.getValue(`cities_by_${ip}`);
@@ -28,13 +28,14 @@ export class CityService {
 
                 if (isFirst) {
                     return {
-                        data: saved.cities[0]
+                        data: saved.cities[0],
                     };
                 }
 
                 return {
                     data: {
-                        cities: saved.cities
+                        cities: saved.cities,
+                        activeCity: saved.cities.find((el: { id: number }) => el.id === activeCitiId) || null
                     }
                 };
             }
@@ -73,7 +74,8 @@ export class CityService {
 
             return {
                 data: {
-                    cities: fresh.cities
+                    cities: fresh.cities,
+                    activeCity: fresh.cities.find((el: { id: number }) => el.id === activeCitiId) || null
                 }
             };
         } catch (error) {

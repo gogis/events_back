@@ -1,4 +1,4 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { Controller, Get, Req, Headers } from '@nestjs/common';
 import { ApiOkResponse, ApiTags, ApiHeader } from '@nestjs/swagger';
 import { Request } from 'express';
 
@@ -11,6 +11,7 @@ export class CityController {
 
     @Get()
     @ApiHeader({ name: 'x-api-key', required: true, example: 'gaasda2d', description: 'Ключ для доступу' })
+    @ApiHeader({ name: 'city-id', required: false, example: '1', description: 'ID міста користувача' })
     @ApiOkResponse({
         description: 'List of cities',
         schema: {
@@ -27,7 +28,12 @@ export class CityController {
             },
         },
     })
-    getCategories(@Req() req: Request) {
-        return this.servis.getCitites(req);
+    getCategories(
+        @Req() req: Request,
+        @Headers('city-id') city_id: string = '0',
+    ) {
+        const cityId = Number(city_id);
+
+        return this.servis.getCitites(req, false, 0, cityId);
     }
 }

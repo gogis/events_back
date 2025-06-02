@@ -12,22 +12,14 @@ export const filterEvents = (events: any[], filter: {
     }
 
     if (filter.dateFrom?.length) {
-        const dateFrom = new Date(filter.dateFrom);
-
         listEvent = listEvent.filter((event: any) => {
-            const end = new Date(event.end_date);
-
-            return end >= dateFrom;
+            return event.date >= `${filter.dateFrom}`;
         });
     }
 
     if (filter.dateTo?.length) {
-        const dateTo = new Date(filter.dateTo);
-
         listEvent = listEvent.filter((event: any) => {
-            const start = new Date(event.date);
-
-            return start <= dateTo;
+            return event.date <= `${filter.dateTo}`;
         });
     }
 
@@ -38,3 +30,4 @@ export const filterEvents = (events: any[], filter: {
         totalPages: Math.ceil(listEvent.length / filter.limit || 1),
     }
 }
+

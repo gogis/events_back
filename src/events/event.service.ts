@@ -105,7 +105,7 @@ export class EventService {
 
             this.redisService.setValue(`event_${cities.data.id}`, JSON.stringify({
                 version: fresh.version,
-                events: fresh.events
+                events: fresh.events.sort((a: { date: string }, b: { date: string }) => new Date(a.date).getTime() - new Date(b.date).getTime())
             }), 3600);
 
             if (isEventsAll) {
