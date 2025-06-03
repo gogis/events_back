@@ -27,6 +27,8 @@
 
 ## Project setup
 
+Node v22.8.0
+
 ```bash
 $ yarn install
 ```
