@@ -16,11 +16,7 @@ export class CityService {
         try {
             const ip = getIp(req);
 
-            console.log('ip : ', ip);
-
             const savedRaw = await this.redisService.getValue(`cities_by_${ip}`);
-
-            console.log('savedRaw: ', savedRaw);
 
             if (savedRaw) {
                 const saved = JSON.parse(savedRaw);
