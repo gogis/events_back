@@ -16,8 +16,6 @@ export class CityService {
         try {
             const ip = getIp(req);
 
-            console.log('ip: ', ip);
-
             const savedRaw = await this.redisService.getValue(`cities_by_${ip}`);
 
             if (savedRaw) {
@@ -51,8 +49,6 @@ export class CityService {
 
             const data = await response.json();
 
-            console.log('data-ipinfo: ', data);
-
             const [lat, lon] = (data.loc ?? '48.918891,24.6765683').split(',').map(Number);
 
             const fresh = await this.wsClient.sendRequest('get_nearby_cities', {
@@ -64,7 +60,7 @@ export class CityService {
 
             this.redisService.setValue(`cities_by_${ip}`, JSON.stringify({
                 cities: fresh.cities
-            }), 60);
+            }), 60 * 60 * 60);
 
             if (!!cityId) {
                 return {
